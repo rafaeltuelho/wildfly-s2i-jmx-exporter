@@ -1,7 +1,9 @@
 # Openshift s2i wildfly extension
 This is an extension of the [Openshift S2I Image for Wildfly](https://github.com/openshift-s2i/s2i-wildfly) which exposes JMX metrics through Jolokia and Prometheus JMX Exporter.
 
-This extension adds to the `openshift/wildfly-160-centos7` base image:
+> NOTE: starting on version 16 Wildfly provides builtin support for MicroProfile Metrics. So no need to use jmx-exporter by yourself. See details at docs: https://docs.wildfly.org/16/Admin_Guide.html#MicroProfile_Metrics_SmallRye
+
+This extension adds to the `openshift/wildfly-90-centos7` base image:
 
 * An [Agent Bond](https://github.com/fabric8io/agent-bond) agent with [Jolokia](http://www.jolokia.org) and Prometheus' [jmx_exporter](https://github.com/prometheus/jmx_exporter). The agent is installed as `/opt/agent-bond/agent-bond.jar`. See below for configuration options.
 
