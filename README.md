@@ -5,14 +5,60 @@ This extension adds to the `openshift/wildfly-160-centos7` base image:
 
 * An [Agent Bond](https://github.com/fabric8io/agent-bond) agent with [Jolokia](http://www.jolokia.org) and Prometheus' [jmx_exporter](https://github.com/prometheus/jmx_exporter). The agent is installed as `/opt/agent-bond/agent-bond.jar`. See below for configuration options.
 
-### Agent Bond
+## Testing this s2i extension
 
-In order to enable Jolokia for your application you should use the output of `agent-bond-opts.sh` in your startup scripts to include it in for the Java startup options.
+### Building the image
+
+> if you need to change the wildfly version you want to use, change the `FROM` instruction on `Dockefile`
+
+```
+docker build -t rafaeltuelho/wildfly-90-jmx-exporter .
+```
+
+### Testing the s2i
+
+> make sure you have [s2i](https://github.com/openshift/source-to-image/releases) installed
+
+```
+s2i build git://github.com/openshift/openshift-jee-sample rafaeltuelho/wildfly-90-jmx-exporter wildflytest
+```
+
+### Run your container
+
+```
+docker run -it -p 8080:8080 -p 9779:9779 -p 8778:8778 wildflytest
+```
+
+Now you can test the jmx endpoints exposed by Jolokia and JMX-exporter agents:
+
+ * Sample WebApp: http://localhost:8080
+ * Prometheus jmx metrics: http://localhost:9779/metrics
+ * Jolokia jmx metrics: http://localhost:8778/jolokia
+
+### Testing using Prometheus and Grafana
+> make sure you have [docker-compose](https://docs.docker.com/compose/install/) installed
+
+```
+docker-compose up
+```
+
+ * Prometheus: http://localhost:9090
+ * Grafana: http://localhost:3000 (login: `admin/admin`)
+ > you will have to add Prometheus Datasource (`http://localhost:9090`, browser auth)
+
+### Using this extension on openshift
+
+ * push this image directly to your openshift registry or to any public/private registry
+ * use the `oc new-app` pointing to the created imagestream inside your project
+
+## Agent Bond
+
+In order to enable Jolokia for your application you should use the output of `run-java-options.sh` in your startup scripts to include it in for the Java startup options.
 
 For example, the following snippet can be added to a script starting up your Java application
 
     # ...
-    export JAVA_OPTIONS="$JAVA_OPTIONS $(/opt/agent-bond-opts.sh)"
+    export JAVA_OPTIONS="$JAVA_OPTIONS $(/opt/run-java-options.sh)"
     # .... use JAVA_OPTIONS when starting your app, e.g. as Wildfly does
 
 The following versions and defaults are used:
@@ -20,7 +66,7 @@ The following versions and defaults are used:
 * [Jolokia](http://www.jolokia.org) : version **1.6.1** and port **8778**
 * [jmx_exporter](https://github.com/prometheus/jmx_exporter): version **0.3.1** and port **9779**
 
-You can influence the behaviour of `agent-bond-opts.sh` by setting various environment variables:
+You can influence the behaviour of `run-java-options.sh` by setting various environment variables:
 
 ### Agent-Bond Options
 
